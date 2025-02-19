@@ -4,14 +4,25 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.swerve.SwerveModule;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.generated.TunerConstants;
+import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
-  private final RobotContainer m_robotContainer;
+  //private final XboxController m_controller = new XboxController(3);
+  //private final CommandSwerveDrivetrain m_swerve = new CommandSwerveDrivetrain.createDrivetrain();
+  private final RobotContainer m_robotContainer; 
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -20,6 +31,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+    LimelightHelpers.printPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed("limelight"));
   }
 
   @Override
@@ -72,4 +84,38 @@ public class Robot extends TimedRobot {
 
   @Override
   public void simulationPeriodic() {}
+
+double limelight_aim_proportional()
+{    
+  // kP (constant of proportionality)
+  // this is a hand-tuned number that determines the aggressiveness of our proportional control loop
+  // if it is too high, the robot will oscillate.
+  // if it is too low, the robot will never reach its target
+  // if the robot never turns in the correct direction, kP should be inverted.
+  double kP = .035;
+
+  // tx ranges from (-hfov/2) to (hfov/2) in degrees. If your target is on the rightmost edge of 
+  // your limelight 3 feed, tx should return roughly 31 degrees.
+  double targetingAngularVelocity = LimelightHelpers.getTX("limelight") * kP;
+
+  // convert to radians per second for our drive method -- custom math by Jacob
+  //targetingAngularVelocity *= TunerConstants.DrivetrainConstants.LinearVelocity.kSpeedAt12Volts / get(LimelightHelpers.RawFiducial.distToRobot);
+
+  //invert since tx is positive when the target is to the right of the crosshair
+  targetingAngularVelocity *= -1.0;
+
+  return targetingAngularVelocity;
+}
+
+// simple proportional ranging control with Limelight's "ty" value
+// this works best if your Limelight's mount height and target mount height are different.
+// if your limelight and target are mounted at the same or similar heights, use "ta" (area) for target ranging rather than "ty"
+double limelight_range_proportional()
+{    
+  double kP = .1;
+  double targetingForwardSpeed = LimelightHelpers.getTY("limelight") * kP;
+  targetingForwardSpeed *= SwerveModule.DriveRequestType.Velocity.value;
+  targetingForwardSpeed *= -1.0;
+  return targetingForwardSpeed;
+  }
 }
