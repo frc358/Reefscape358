@@ -559,7 +559,7 @@ public class LimelightHelpers {
         return inData[position];
     }
 
-    private static PoseEstimate getBotPoseEstimate(String limelightName, String entryName) {
+    public static PoseEstimate getBotPoseEstimate(String limelightName, String entryName) {
         DoubleArrayEntry poseEntry = LimelightHelpers.getLimelightDoubleArrayEntry(limelightName, entryName);
         
         TimestampedDoubleArray tsValue = poseEntry.getAtomic();

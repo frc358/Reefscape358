@@ -9,6 +9,7 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -17,12 +18,22 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   //private final XboxController m_controller = new XboxController(3);
   //private final CommandSwerveDrivetrain m_swerve = new CommandSwerveDrivetrain.createDrivetrain();
   private final RobotContainer m_robotContainer; 
+  //private double tx = LimelightHelpers.getTX("null");
+  NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+  NetworkTableEntry tx = table.getEntry("tx");
+  NetworkTableEntry ty = table.getEntry("ty");
+  NetworkTableEntry ta = table.getEntry("ta");
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -30,8 +41,37 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    CommandScheduler.getInstance().run(); 
-    LimelightHelpers.printPoseEstimate(LimelightHelpers.getBotPoseEstimate_wpiRed("limelight"));
+    CommandScheduler.getInstance().run();
+    double x = tx.getDouble(0.0);
+    double y = ty.getDouble(0.0);
+    double area = ta.getDouble(0.0);
+    System.out.println("X : " + x);
+    System.out.println("Y : " + y);
+    System.out.println("Area : " + area);
+    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    NetworkTableEntry tx = table.getEntry("tx");
+    NetworkTableEntry ty = table.getEntry("ty");
+    NetworkTableEntry ta = table.getEntry("ta");
+    System.out.println("tx : " + tx);
+    System.out.println("ty : " + ty);
+    System.out.println("ta : " + ta);
+    //read values periodically
+    double x = tx.getDouble(0.0);
+    double y = ty.getDouble(0.0);
+    double area = ta.getDouble(0.0);
+    // Basic targeting data
+    double tx = LimelightHelpers.getTX("");  // Horizontal offset from crosshair to target in degrees
+    double ty = LimelightHelpers.getTY("");  // Vertical offset from crosshair to target in degrees
+    double ta = LimelightHelpers.getTA("");  // Target area (0% to 100% of image)
+    boolean hasTarget = LimelightHelpers.getTV(""); // Do you have a valid target?
+    System.out.println("Target?: " + hasTarget);
+    //LimelightHelpers.printPoseEstimate(LimelightHelpers.getBotPoseEstimate("limelight", "ty"));
+    //System.out.println("Pose Y: " + LimelightHelpers.getTY("limelight"));
+    System.out.println("Pose X: " + tx);
+    System.out.println("Pipeline Type: " + LimelightHelpers.getCurrentPipelineType("limelight"));
+    //LimelightHelpers.getDetectorClass("limelight");
+    //LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults("limelight");
+    //System.out.println("Please work: " + results.getBotPose3d());
   }
 
   @Override
