@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -34,6 +35,8 @@ public class Robot extends TimedRobot {
   NetworkTableEntry tx = table.getEntry("tx");
   NetworkTableEntry ty = table.getEntry("ty");
   NetworkTableEntry ta = table.getEntry("ta");
+  private final CommandXboxController joystick = new CommandXboxController(0);
+
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -42,33 +45,35 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    double x = tx.getDouble(0.0);
+    System.out.println("Xbox Value X: " + joystick.getLeftX());
+    System.out.println("Xbox Value X With Negative: " + -joystick.getLeftX());
+    System.out.println("Xbox Value Y: " + joystick.getLeftY());
+    System.out.println("Xbox Value Y With Negative: " + -joystick.getLeftY());
+    /* double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
     System.out.println("X : " + x);
     System.out.println("Y : " + y);
     System.out.println("Area : " + area);
-    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-    NetworkTableEntry tx = table.getEntry("tx");
-    NetworkTableEntry ty = table.getEntry("ty");
-    NetworkTableEntry ta = table.getEntry("ta");
-    System.out.println("tx : " + tx);
-    System.out.println("ty : " + ty);
-    System.out.println("ta : " + ta);
+    */
+    //NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    //NetworkTableEntry tx = table.getEntry("tx");
+    //NetworkTableEntry ty = table.getEntry("ty");
+    //NetworkTableEntry ta = table.getEntry("ta");
+    //System.out.println("tx : " + tx);
+    //System.out.println("ty : " + ty);
+    //System.out.println("ta : " + ta);
     //read values periodically
-    double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
-    double area = ta.getDouble(0.0);
     // Basic targeting data
-    double tx = LimelightHelpers.getTX("");  // Horizontal offset from crosshair to target in degrees
-    double ty = LimelightHelpers.getTY("");  // Vertical offset from crosshair to target in degrees
-    double ta = LimelightHelpers.getTA("");  // Target area (0% to 100% of image)
+    //double tx = LimelightHelpers.getTX("");  // Horizontal offset from crosshair to target in degrees
+    //double ty = LimelightHelpers.getTY("");  // Vertical offset from crosshair to target in degrees
+    //double ta = LimelightHelpers.getTA("");  // Target area (0% to 100% of image)
     boolean hasTarget = LimelightHelpers.getTV(""); // Do you have a valid target?
     System.out.println("Target?: " + hasTarget);
     //LimelightHelpers.printPoseEstimate(LimelightHelpers.getBotPoseEstimate("limelight", "ty"));
     //System.out.println("Pose Y: " + LimelightHelpers.getTY("limelight"));
-    System.out.println("Pose X: " + tx);
-    System.out.println("Pipeline Type: " + LimelightHelpers.getCurrentPipelineType("limelight"));
+    //System.out.println("Pose X: " + tx);
+    //System.out.println("Pipeline Type: " + LimelightHelpers.getCurrentPipelineType("limelight"));
     //LimelightHelpers.getDetectorClass("limelight");
     //LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults("limelight");
     //System.out.println("Please work: " + results.getBotPose3d());
