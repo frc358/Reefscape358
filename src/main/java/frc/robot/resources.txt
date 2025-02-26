@@ -1,0 +1,21 @@
+//github for CTRE to use things with swerve via their generated code from pheonix tuner (very helpful)
+https://github.com/CrossTheRoadElec/Phoenix6-Examples/tree/main/java/SwerveWithPathPlanner/src/main/deploy/pathplanner
+https://github.com/CrossTheRoadElec/SwerveDriveExample
+
+//WPILIB API DOCS
+https://github.wpilib.org/allwpilib/docs/release/java/
+
+//CTRE API DOCS
+https://api.ctr-electronics.com/phoenix6/release/java/com/ctre/phoenix6/package-summary.html
+https://pro.docs.ctr-electronics.com/en/latest/docs/migration/migration-guide/api-structure-guide.html
+
+//PATHPLANNER DOCS
+https://pathplanner.dev/gui-getting-started.html#open-a-project
+
+//SHUFFLEBOARD DOCS
+https://docs.wpilib.org/en/stable/docs/software/dashboards/shuffleboard/layouts-with-code/sending-data.html
+
+//ELASTIC DOCS
+https://github.com/Gold872/elastic-dashboard/blob/main/elasticlib/Elastic.java
+https://frc-elastic.gitbook.io/docs/additional-features-and-references/robot-notifications-with-elasticlib
+
