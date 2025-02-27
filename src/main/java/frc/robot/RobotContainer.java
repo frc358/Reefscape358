@@ -8,9 +8,12 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -36,16 +39,19 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    //path follower
+    private final SendableChooser<Command> autoChooser;
+
     public RobotContainer() {
+        //configures dashboard to have an autonomose mode chooser
+        autoChooser = AutoBuilder.buildAutoChooser("Auto Chooser");
+        Shuffleboard.getTab("Auto Chooser").add(autoChooser);
         configureBindings();
     }
 
-
+    //gets the chosen auto command from dashboard
     public Command getAutonomousCommand(){
-    // This method loads the auto when it is called, however, it is recommended
-    // to first load your paths/autos when code starts, then return the
-    // pre-loaded auto/path
-        return new PathPlannerAuto("Default Auto");
+        return autoChooser.getSelected();
     }
 
     private void configureBindings() {
