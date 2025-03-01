@@ -12,7 +12,7 @@ import com.ctre.phoenix6.swerve.SwerveModuleConstants.*;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
+//import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.*;
 
