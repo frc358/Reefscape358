@@ -4,40 +4,22 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveModule;
-import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.OdometryThread;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.Odometry;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.XboxController;
+//import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.generated.TunerConstants;
-import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.util.Units;
 
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private final XboxController m_controller = new XboxController(3);
+  //private final XboxController m_controller = new XboxController(3);
   private final RobotContainer m_robotContainer; 
   private final Timer m_timer = new Timer();
-  private final CommandSwerveDrivetrain m_swerveDrivetrain;
+ // private final CommandSwerveDrivetrain m_swerveDrivetrain;
   private final boolean kUseLimelight = false;
   //private final SwerveDrivetrain m_swerveDrivetrain = new SwerveDrivetrain(TunerSwerveDrivetrain.);
 
@@ -84,7 +66,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_timer.reset();
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
@@ -93,14 +75,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    // Drive for 2 seconds
-    if (m_timer.get() < 2.0) {
-    // Drive forwards half speed, make sure to turn input squaring off
-    m_robotContainer.forwardStraight();
-    
-      } else {
-        m_robotDrive.stopMotor(); // stop robot
-        }
   }
 
   @Override
@@ -166,13 +140,4 @@ double limelight_range_proportional()
   targetingForwardSpeed *= -1.0;
   return targetingForwardSpeed;
   }
-
-
-
-public Command getAuto(){
-  RobotContainer.Swerve
-
-
-  return null;
-}
 }
