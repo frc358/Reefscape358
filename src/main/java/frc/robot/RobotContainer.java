@@ -9,14 +9,14 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-//import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
@@ -24,6 +24,8 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class RobotContainer {
+
+    
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
@@ -40,31 +42,28 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-
     //path follower
     private SendableChooser<Command> autoChooser;
 
     public RobotContainer() {
-        //configures dashboard to have an autonomose mode chooser
-        //autoChooser = AutoBuilder.buildAutoChooser("Tests");
-        //SmartDashboard.getTab("Auto Chooser").add(autoChooser);
+        //configures dashboard to have an autonomoose mode chooser
         drivetrain.configureAutoBuilder();
-        configureAutoBuilder();
+        autoChooser = AutoBuilder.buildAutoChooser();
+        //configureAutoChooser();
         configureBindings();
+
+
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+        configureBindings();
+
+        drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     //gets the chosen auto command from dashboard
-    /*
     public Command getAutonomousCommand(){
-
+        return autoChooser.getSelected();
     }
-    */
 
-    private void configureAutoBuilder(){
-        autoChooser = AutoBuilder.buildAutoChooser("Tests");
-        //autoChooser.addOption("Auto", drivetrain.sysIdDynamic(Direction.kForward));
-        //SmartDashboard.putData("Auto Chooser", autoChooser);
-    }
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
@@ -94,10 +93,4 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
-
-    public Command getAutonomousCommand(){
-        return autoChooser.getSelected();
-    }
-
-
 }

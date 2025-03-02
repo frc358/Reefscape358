@@ -6,11 +6,13 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveModule;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 //import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.util.Units;
 
 
@@ -24,12 +26,21 @@ public class Robot extends TimedRobot {
   //private final SwerveDrivetrain m_swerveDrivetrain = new SwerveDrivetrain(TunerSwerveDrivetrain.);
 
   public Robot() {
+
+
+    double startTime = Timer.getFPGATimestamp();
+    DataLogManager.start();
+    double codeRunTime = (Timer.getFPGATimestamp() - startTime) * 1000;
+    SmartDashboard.putNumber("Code Run Time (ms)", codeRunTime);
+    SmartDashboard.putNumber("Match Time", codeRunTime);
+    DataLogManager.log("Startup Time: " + startTime * 1000);
     m_robotContainer = new RobotContainer();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.
@@ -53,7 +64,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    System.gc();
+  }
 
   @Override
   public void disabledPeriodic() {}
@@ -65,8 +78,7 @@ public class Robot extends TimedRobot {
   /** This function is run once each time the robot enters autonomous mode. */
   @Override
   public void autonomousInit() {
-    m_timer.reset();
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
