@@ -14,8 +14,11 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 
 import static edu.wpi.first.units.Units.*;
 
-public class Contants {
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+
+public class Constants {
     public static class ElevatorConstants {
+
         public static final double kElevatorKp = 5;//5
         public static final double kElevatorKi = 0;
         public static final double kElevatorKd = 0;//
