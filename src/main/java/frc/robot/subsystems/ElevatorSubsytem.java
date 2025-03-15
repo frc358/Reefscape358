@@ -31,9 +31,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-//import frc.robot.util.ExpandedSubsystem;
 import frc.robot.Constants.ElevatorConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -91,7 +89,9 @@ public class ElevatorSubsytem extends SubsystemBase {
 
 
 
-  public void Elevator() {
+  public ElevatorSubsytem() {
+
+    System.out.print("Elevator class");
 
     elevatorMainMotor = new TalonFX(ElevatorConstants.elevatorMainMotorID);
     elevatorFollowerMotor = new TalonFX(ElevatorConstants.elevatorFollowerMotorID);
@@ -244,6 +244,10 @@ public class ElevatorSubsytem extends SubsystemBase {
   public void periodic() {
     //elevatorMainPosition.refresh();
     //elevatorFollowerPosition.refresh();
+    if (RobotBase.isSimulation()){
+      simulationPeriodic();
+      return;
+    }
 
     SmartDashboard.putNumber(
         "Elevator/Main Stage 1 Position",

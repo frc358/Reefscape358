@@ -11,6 +11,7 @@ import java.util.Set;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -24,8 +25,8 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.Outtake;
 
 
 public class RobotContainer {
@@ -46,6 +47,9 @@ public class RobotContainer {
     @Logged(name = "Elevator")
     private final ElevatorSubsytem elevator = new ElevatorSubsytem();
 
+    @Logged(name = "Outtake")
+    private final Outtake outtake = new Outtake();
+
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     //path follower
@@ -59,6 +63,29 @@ public class RobotContainer {
         Shuffleboard.getTab("Auto Chooser").add(autoChooser);
         configureBindings();
         configureElevatorBindings();
+        configureOuttakeBindings();
+        //elevator commands
+        NamedCommands.registerCommand(
+            "Elevator: L4",
+            elevator
+                .moveToPosition(ElevatorConstants.L4Height)
+                // .onlyIf(outtakeLaserBroken)
+                .withTimeout(2.15)
+                .asProxy());
+        NamedCommands.registerCommand(
+            "Elevator: L3",
+            elevator
+                .moveToPosition(ElevatorConstants.L3Height)
+                // .onlyIf(outtakeLaserBroken)
+                .withTimeout(4)
+                .asProxy());
+        NamedCommands.registerCommand(
+            "Elevator: L2",
+            elevator
+                .moveToPosition(ElevatorConstants.L2Height)
+                // .onlyIf(outtakeLaserBroken)
+                .withTimeout(4)
+                .asProxy());
     }
 
     //gets the chosen auto command from dashboard
@@ -94,6 +121,10 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+
+
+        
     }
 
     private void configureElevatorBindings() {
@@ -147,5 +178,14 @@ public class RobotContainer {
             .whileTrue(elevator.upSpeed(0.1))
             .onFalse(elevator.runOnce(() -> elevator.stopElevator()));
   }
+  private void configureOuttakeBindings() {
+    // operatorController
+    //     .button(OperatorConstants.indexerButton)
+    //     .onTrue(outtake.reverseOuttake())
+    //     .onFalse(outtake.stopOuttakeMotor());
+
+    //operatorController.start().and(operatorController.back().negate()).onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+    operatorController.rightTrigger().onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+}
 
 }

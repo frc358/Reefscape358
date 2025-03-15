@@ -91,6 +91,15 @@ public class Constants {
             .withMotorOutput(motorOutputConfigs)
             .withSoftwareLimitSwitch(softwareLimitSwitchConfigs);
   }
+  public static class OuttakeConstants {
+    public static final int outtakeMotorID = 18;
+    public static final int outtakeCurrentLimit = 60;
+    public static final int outtakeShutOffLimit = 75;
+
+    public static final double fastOuttakeSpeed = 0.353;
+    public static final double slowOuttakeSpeed = 0.24; // .353 0.2
+
+  }
   
     public static class MiscellaneousConstants {
       public static final double prematchDelay = 2.5;
