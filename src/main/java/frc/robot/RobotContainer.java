@@ -11,14 +11,12 @@ import java.util.Set;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -26,7 +24,9 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.ElevatorSubsytem;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import edu.wpi.first.math.util.Units;
+
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -53,10 +53,12 @@ public class RobotContainer {
 
     public RobotContainer() {
 
+        drivetrain.configureAutoBuilder();
         //configures dashboard to have an autonomose mode chooser
         autoChooser = AutoBuilder.buildAutoChooser("Auto Chooser");
         Shuffleboard.getTab("Auto Chooser").add(autoChooser);
         configureBindings();
+        configureElevatorBindings();
     }
 
     //gets the chosen auto command from dashboard
@@ -100,20 +102,21 @@ public class RobotContainer {
         // Elevator L4
         operatorController
             .b()
-            .and(outtakeLaserBroken)
+            //.and(outtakeLaserBroken)
             .or(operatorController.povLeft().and(operatorController.b()))
             .onTrue(elevator.moveToPosition(ElevatorConstants.L4Height));
 
          // elevator L3
+        operatorController
             .y()
-            .and(outtakeLaserBroken)
+            //.and(outtakeLaserBroken)
             .or(operatorController.povLeft().and(operatorController.y()))
             .onTrue(elevator.moveToPosition(ElevatorConstants.L3Height));
 
         // elevator L2
         operatorController
             .x()
-            .and(outtakeLaserBroken)
+            //.and(outtakeLaserBroken)
             .or(operatorController.povLeft().and(operatorController.x()))
             .onTrue(elevator.moveToPosition(ElevatorConstants.L2Height));
         // elevator down height

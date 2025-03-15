@@ -31,20 +31,18 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.ElevatorConstants;
-
-import frc.robot.Constants.MiscellaneousConstants;
 //import frc.robot.util.ExpandedSubsystem;
+import frc.robot.Constants.ElevatorConstants;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 
 @Logged(strategy = Strategy.OPT_IN)
-public class ElevatorSubsytem implements Subsystem {
+public class ElevatorSubsytem extends SubsystemBase {
     
   /** Creates a new Elevator. */
   private TalonFX elevatorMainMotor;
-
   private TalonFX elevatorFollowerMotor;
 
   private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
@@ -57,9 +55,8 @@ public class ElevatorSubsytem implements Subsystem {
   private Debouncer buttonDebouncer = new Debouncer(0.28);
   private Debouncer elevatorDebouncer = new Debouncer(0.6);
   private Debouncer zeroedDebouncer = new Debouncer(2.5);
-
+  private ElevatorSim elevatorSim;
   private double positionTolerance = Units.inchesToMeters(0.2);
-
   private StatusSignal<Angle> elevatorMainPosition;
   private StatusSignal<Angle> elevatorFollowerPosition;
 
@@ -92,9 +89,10 @@ public class ElevatorSubsytem implements Subsystem {
               },
               this));
 
-  private ElevatorSim elevatorSim;
+
 
   public void Elevator() {
+
     elevatorMainMotor = new TalonFX(ElevatorConstants.elevatorMainMotorID);
     elevatorFollowerMotor = new TalonFX(ElevatorConstants.elevatorFollowerMotorID);
     // follower = new Follower(ElevatorConstants.elevatorMainMotorID, false);
@@ -107,8 +105,8 @@ public class ElevatorSubsytem implements Subsystem {
     // elevatorFollowerMotor.setControl(follower);
 
     elevatorAlert = new Alert("Elevator is not Zeroed!", AlertType.kWarning);
-    // elevatorMainMotor.setPosition(0.0);
-    // elevatorFollowerMotor.setPosition(0.0);
+    elevatorMainMotor.setPosition(0.0);
+    elevatorFollowerMotor.setPosition(0.0);
 
     if (RobotBase.isSimulation()) {
       elevatorSim =
@@ -244,8 +242,8 @@ public class ElevatorSubsytem implements Subsystem {
 
   @Override
   public void periodic() {
-    elevatorMainPosition.refresh();
-    elevatorFollowerPosition.refresh();
+    //elevatorMainPosition.refresh();
+    //elevatorFollowerPosition.refresh();
 
     SmartDashboard.putNumber(
         "Elevator/Main Stage 1 Position",
