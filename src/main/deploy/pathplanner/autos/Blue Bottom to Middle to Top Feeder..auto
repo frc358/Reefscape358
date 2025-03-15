@@ -11,22 +11,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 2.15
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Elevator: L4"
-                }
-              }
-            ]
+            "name": "Elevator: L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stop score"
           }
         },
         {

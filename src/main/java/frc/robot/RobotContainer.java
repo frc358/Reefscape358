@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import java.util.Set;
+import java.util.jar.Attributes.Name;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -57,13 +58,7 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        drivetrain.configureAutoBuilder();
-        //configures dashboard to have an autonomose mode chooser
-        autoChooser = AutoBuilder.buildAutoChooser("Auto Chooser");
-        Shuffleboard.getTab("Auto Chooser").add(autoChooser);
-        configureBindings();
-        configureElevatorBindings();
-        configureOuttakeBindings();
+       
         //elevator commands
         NamedCommands.registerCommand(
             "Elevator: L4",
@@ -86,6 +81,18 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
+        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy());
+        NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor());
+        
+
+
+        drivetrain.configureAutoBuilder();
+        //configures dashboard to have an autonomose mode chooser
+        autoChooser = AutoBuilder.buildAutoChooser("Auto Chooser");
+        Shuffleboard.getTab("Auto Chooser").add(autoChooser);
+        configureBindings();
+        configureElevatorBindings();
+        configureOuttakeBindings();
     }
 
     //gets the chosen auto command from dashboard
