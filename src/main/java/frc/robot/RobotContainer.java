@@ -158,7 +158,8 @@ public class RobotContainer {
             .or(operatorController.povLeft().and(operatorController.x()))
             .onTrue(elevator.moveToPosition(ElevatorConstants.L2Height));
         // elevator down height
-        operatorController.a().onTrue(elevator.downPosition());
+        operatorController.a()
+        .onTrue(elevator.moveToPosition(ElevatorConstants.downHeight));
 
         // home elevator
         operatorController.start().and(operatorController.back()).onTrue(elevator.homeElevator());
@@ -178,12 +179,23 @@ public class RobotContainer {
         operatorController
             .povDown()
             .whileTrue(elevator.downSpeed(0.1))
-            .onFalse(elevator.runOnce(() -> elevator.stopElevator()));
+            .onFalse(elevator.runOnce(() -> elevator.downPosition()));
         // elevator manual up
         operatorController
             .povUp()
             .whileTrue(elevator.upSpeed(0.1))
-            .onFalse(elevator.runOnce(() -> elevator.stopElevator()));
+            .onFalse(elevator.runOnce(() -> elevator.downPosition()));
+        //elevator manual up fast
+        operatorController
+            .povRight()
+            .whileTrue(elevator.upSpeed(0.2))
+            .onFalse(elevator.runOnce(() -> elevator.downPosition()));
+        //elevator manual down fast
+        operatorController
+            .povLeft()
+            .whileTrue(elevator.downSpeed(0.2))
+            .onFalse(elevator.runOnce(() -> elevator.downPosition()));
+
   }
   private void configureOuttakeBindings() {
     // operatorController

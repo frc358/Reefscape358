@@ -29,13 +29,13 @@ public class Constants {
     public static final int elevatorFollowerMotorID = 22;
     public static final int buttonSwitchID = 0;
   
-    public static final double maxHeight = Units.inchesToMeters(28.09);
+    public static final double maxHeight = Units.inchesToMeters(55);
     public static final double minHeight = 0.0;
   
-    public static final double L4Height = Units.inchesToMeters(27.8); // 28.09
-    public static final double L3Height = Units.inchesToMeters(15.5 + .7);
-    public static final double L2Height = Units.inchesToMeters(7.3 + .55);
-    public static final double downHeight = Units.inchesToMeters(0);
+    public static final double L4Height = Units.inchesToMeters(52); // 28.09
+    public static final double L3Height = Units.inchesToMeters(29.5);
+    public static final double L2Height = Units.inchesToMeters(13.5);
+    public static final double downHeight = Units.inchesToMeters(.75);
     public static final double coralInTheWayAdd = 2.74;
   
     public static final double AlgaeHighHeight = Units.inchesToMeters(8.6 + .3);
