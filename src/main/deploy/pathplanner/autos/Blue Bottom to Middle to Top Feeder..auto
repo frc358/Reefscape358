@@ -11,6 +11,24 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Elevator: L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stop score"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Blue Middle to Top Feeder"
