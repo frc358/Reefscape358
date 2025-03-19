@@ -28,6 +28,7 @@ public class Robot extends TimedRobot {
   public boolean m_LimelightHasValidTarget = false;
   private double m_LimelightDriveCommand = 0.0;
   private double m_LimelightSteerCommand = 0.0;
+  private int checkValid = 0;
 
   public Robot() {
 
@@ -49,10 +50,17 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     SmartDashboard.putBoolean("Camera", kUseLimelight);
     SmartDashboard.putNumber("Time", RobotController.getFPGATime());
+
+    //update boolean value before putting it on dashboard
+    m_LimelightHasValidTarget = LimelightHelpers.getTV(null); 
     SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
 
-
-
+    //get value of ApTag
+    if (m_LimelightHasValidTarget){
+      int id = 0;
+      id = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(id);
+      SmartDashboard.putNumber("april tag id", id);
+    }
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.
