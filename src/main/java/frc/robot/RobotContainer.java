@@ -159,7 +159,7 @@ public class RobotContainer {
             .onTrue(elevator.moveToPosition(ElevatorConstants.L2Height));
         // elevator down height
         operatorController.a()
-        .onTrue(elevator.moveToPosition(ElevatorConstants.downHeight));
+        .onTrue(elevator.moveToPosition(ElevatorConstants.minHeight));
 
         // home elevator
         operatorController.start().and(operatorController.back()).onTrue(elevator.homeElevator());
@@ -188,7 +188,7 @@ public class RobotContainer {
         //elevator manual up fast
         operatorController
             .povRight()
-            .whileTrue(elevator.upSpeed(0.2))
+            .whileTrue(elevator.upSpeed(0.6))
             .onFalse(elevator.runOnce(() -> elevator.downPosition()));
         //elevator manual down fast
         operatorController

@@ -32,9 +32,9 @@ public class Constants {
     public static final double maxHeight = Units.inchesToMeters(55);
     public static final double minHeight = 0.0;
   
-    public static final double L4Height = Units.inchesToMeters(52); // 28.09
-    public static final double L3Height = Units.inchesToMeters(29.5);
-    public static final double L2Height = Units.inchesToMeters(13.5);
+    public static final double L4Height = Units.inchesToMeters(53.5); // 28.09
+    public static final double L3Height = Units.inchesToMeters(31.5);
+    public static final double L2Height = Units.inchesToMeters(15.5);
     public static final double downHeight = Units.inchesToMeters(.75);
     public static final double coralInTheWayAdd = 2.74;
   

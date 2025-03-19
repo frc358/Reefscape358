@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 14.771,
-        "y": 3.947
+        "x": 7.0,
+        "y": 6.5
       },
       "prevControl": null,
       "nextControl": {
-        "x": 15.191307456144651,
-        "y": 4.854381751144033
+        "x": 7.252245202814889,
+        "y": 6.696103287432798
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "BlueStartTop"
     },
     {
       "anchor": {
-        "x": 16.111475409830422,
-        "y": 1.0460553278703322
+        "x": 5.406454918032787,
+        "y": 5.0379610655737705
       },
       "prevControl": {
-        "x": 14.073565573764851,
-        "y": -1.1268442622950823
+        "x": 5.202653347144722,
+        "y": 4.893168387224494
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -30.323606862549997
   },
   "reversed": false,
-  "folder": "OldAutos",
+  "folder": "NewAutos",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
