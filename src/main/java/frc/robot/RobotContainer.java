@@ -87,8 +87,9 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
-        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy());
+        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy().withTimeout(1.5));
         NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor());
+        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(.75));
         
 
 
@@ -228,7 +229,7 @@ public class RobotContainer {
             .onTrue(elevator.moveToPosition(ElevatorConstants.L2Height));
         // elevator down height
         operatorController.a()
-        .onTrue(elevator.moveToPosition(ElevatorConstants.downHeight));
+        .onTrue(elevator.moveToPosition(ElevatorConstants.minHeight));
 
         // home elevator
         operatorController.start().and(operatorController.back()).onTrue(elevator.homeElevator());
@@ -257,7 +258,7 @@ public class RobotContainer {
         //elevator manual up fast
         operatorController
             .povRight()
-            .whileTrue(elevator.upSpeed(0.2))
+            .whileTrue(elevator.upSpeed(0.6))
             .onFalse(elevator.runOnce(() -> elevator.downPosition()));
         //elevator manual down fast
         operatorController
@@ -274,6 +275,8 @@ public class RobotContainer {
 
     //operatorController.start().and(operatorController.back().negate()).onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
     operatorController.rightTrigger().onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+    operatorController.leftTrigger().onTrue(outtake.slowOuttake()).onFalse(outtake.stopOuttakeMotor());
+    operatorController.leftStick().onTrue(outtake.reverseOuttake()).onFalse(outtake.stopOuttakeMotor());
 }
 
 }

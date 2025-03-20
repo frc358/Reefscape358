@@ -56,7 +56,7 @@ public class Outtake extends SubsystemBase {
   }
 
   public Command reverseOuttake() {
-    return run(() -> outtakemotor.set(-OuttakeConstants.fastOuttakeSpeed))
+    return run(() -> outtakemotor.set(OuttakeConstants.slowReverseSpeed))
         .withName("Reverse Outtake");
   }
 
