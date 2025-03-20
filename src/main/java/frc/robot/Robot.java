@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
@@ -40,6 +41,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Match Time", codeRunTime);
     DataLogManager.log("Startup Time: " + startTime * 1000);
     m_robotContainer = new RobotContainer();
+    CameraServer.startAutomaticCapture();
   }
 
   @Override
@@ -51,16 +53,23 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("Camera", kUseLimelight);
     SmartDashboard.putNumber("Time", RobotController.getFPGATime());
 
-    //update boolean value before putting it on dashboard
-    m_LimelightHasValidTarget = LimelightHelpers.getTV(null); 
-    SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
+    double[] psoey = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<botpose>").getDoubleArray(new double[6]);
+    SmartDashboard.putNumberArray("bot pose", psoey);
 
-    //get value of ApTag
-    if (m_LimelightHasValidTarget){
-      int id = 0;
-      //id = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(id);
-      SmartDashboard.putNumber("april tag id", id);
-    }
+    double [] pitchyaw = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<targetpose_cameraspace>").getDoubleArray(new double[6]);
+    SmartDashboard.putNumberArray("pitchyaw", pitchyaw);
+
+    double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
+    double ty = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0);
+    double ta = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0);
+
+    SmartDashboard.putNumber("tx", tx);
+    SmartDashboard.putNumber("ta", ta);
+
+    //update boolean value before putting it on dashboard
+    m_LimelightHasValidTarget = LimelightHelpers.getTV("limelight"); 
+    SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
+    SmartDashboard.putNumber("April Tag ID", NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(kDefaultPeriod));
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.

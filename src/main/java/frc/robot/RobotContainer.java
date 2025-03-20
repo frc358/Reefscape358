@@ -54,9 +54,6 @@ public class RobotContainer {
     private final Outtake outtake = new Outtake();
 
     public boolean m_LimelightHasValidTarget = false;
-    private double m_LimelightDriveCommand = 0.0;
-    private double m_LimelightSteerCommand = 0.0;
-
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     //path follower
@@ -100,6 +97,7 @@ public class RobotContainer {
         configureBindings();
         configureElevatorBindings();
         configureOuttakeBindings();
+        configureAlignmentBindings();
     }
 
     //gets the chosen auto command from dashboard
@@ -140,45 +138,6 @@ public class RobotContainer {
 
         
     }
-
-    public void Update_Limelight_Tracking()
-    {
-        // These numbers must be tuned for your Robot!  Be careful!
-        final double STEER_K = 0.03;                    // how hard to turn toward the target
-        final double DRIVE_K = 0.26;                    // how hard to drive fwd toward the target
-        final double DESIRED_TARGET_AREA = 13.0;        // Area of the target when the robot reaches the wall
-        final double MAX_DRIVE = 0.7;                   // Simple speed limit so we don't drive too fast
-  
-        double tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tv").getDouble(0);
-        double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
-        double ty = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0);
-        double ta = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0);
-
-        if (tv < 1.0)
-        {
-            m_LimelightHasValidTarget = false;
-            m_LimelightDriveCommand = 0.0;
-            m_LimelightSteerCommand = 0.0;
-            return;
-        }
-
-        m_LimelightHasValidTarget = true;
-
-        // Start with proportional steering
-        double steer_cmd = tx * STEER_K;
-        m_LimelightSteerCommand = steer_cmd;
-
-        // try to drive forward until the target area reaches our desired area
-        double drive_cmd = (DESIRED_TARGET_AREA - ta) * DRIVE_K;
-
-        // don't let the robot drive too fast into the goal
-        if (drive_cmd > MAX_DRIVE)
-        {
-            drive_cmd = MAX_DRIVE;
-        }
-        m_LimelightDriveCommand = drive_cmd;
-        }
-
     private double leftGoalEstimateX(double distanceFromTagX){
         double neededDistance = 0;
         neededDistance = Constants.VisionConstants.leftGoalX - distanceFromTagX;
@@ -188,15 +147,11 @@ public class RobotContainer {
 
 
     private Command adjustRobotPositionLeft() {
-        Update_Limelight_Tracking();
+        //Update_Limelight_Tracking();
         //check if aptag is detected
-        if (m_LimelightHasValidTarget){
-            double neededDistance = leftGoalEstimateX(LimelightHelpers.getTX(null));
-            //drive neededDistance
-            return drivetrain.applyRequest(() ->
-            drive.withVelocityX(neededDistance));
-        }
-        return null;
+        double neededDistance = leftGoalEstimateX(LimelightHelpers.getTX("limelight"));
+        //drive neededDistance
+        return drivetrain.applyRequest(() -> drive.withVelocityX(neededDistance));
 
     }
 
@@ -204,9 +159,6 @@ public class RobotContainer {
         
         elevator.setDefaultCommand(elevator.holdPosition());
 
-
-        //Left half of Coral
-        operatorController.leftBumper().onTrue(adjustRobotPositionLeft());
         // Elevator L4
         operatorController
             .b()
@@ -278,5 +230,9 @@ public class RobotContainer {
     operatorController.leftTrigger().onTrue(outtake.slowOuttake()).onFalse(outtake.stopOuttakeMotor());
     operatorController.leftStick().onTrue(outtake.reverseOuttake()).onFalse(outtake.stopOuttakeMotor());
 }
+
+    private void configureAlignmentBindings(){
+        operatorController.leftBumper().onTrue(adjustRobotPositionLeft()).onFalse(drivetrain.applyRequest(() -> brake));
+    }
 
 }
