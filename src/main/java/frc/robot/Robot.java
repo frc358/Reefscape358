@@ -57,8 +57,8 @@ public class Robot extends TimedRobot {
 
     //get value of ApTag
     if (m_LimelightHasValidTarget){
-      double id = 0;
-      id = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(id);
+      int id = 0;
+      //id = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(id);
       SmartDashboard.putNumber("april tag id", id);
     }
 

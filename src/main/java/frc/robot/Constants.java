@@ -101,6 +101,13 @@ public class Constants {
     public static final double slowReverseSpeed = .1;
 
   }
+
+  public static class VisionConstants {
+    public static final double leftGoalX = 1.0;
+    public static final double rightGoalX = -1.0;
+    public static final double leftGoalY = -.1;
+    public static final double rightGoalY= -.1;
+  }
   
     public static class MiscellaneousConstants {
       public static final double prematchDelay = 2.5;
