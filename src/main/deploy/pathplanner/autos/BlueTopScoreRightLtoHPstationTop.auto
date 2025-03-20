@@ -30,15 +30,21 @@
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "BlueHexTopRightL to HPstation"
+            "name": "score"
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 1.0
+            "name": "stop score"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BlueHexTopRightL to HPstation"
           }
         },
         {
@@ -70,6 +76,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "NewConnectedAutos",
+  "folder": null,
   "choreoAuto": false
 }
