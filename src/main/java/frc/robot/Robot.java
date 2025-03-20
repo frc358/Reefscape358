@@ -16,16 +16,19 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 
 public class Robot extends TimedRobot {
+
+
   private Command m_autonomousCommand;
-  //private final XboxController m_controller = new XboxController(3);
   private final RobotContainer m_robotContainer; 
-  //private final Timer m_timer = new Timer();
- // private final CommandSwerveDrivetrain m_swerveDrivetrain;
   private final boolean kUseLimelight = false;
-  //private final SwerveDrivetrain m_swerveDrivetrain = new SwerveDrivetrain(TunerSwerveDrivetrain.);
+  public boolean m_LimelightHasValidTarget = false;
+  private double m_LimelightDriveCommand = 0.0;
+  private double m_LimelightSteerCommand = 0.0;
+  private int checkValid = 0;
 
   public Robot() {
 
@@ -48,8 +51,16 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("Camera", kUseLimelight);
     SmartDashboard.putNumber("Time", RobotController.getFPGATime());
 
+    //update boolean value before putting it on dashboard
+    m_LimelightHasValidTarget = LimelightHelpers.getTV(null); 
+    SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
 
-
+    //get value of ApTag
+    if (m_LimelightHasValidTarget){
+      double id = 0;
+      id = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(id);
+      SmartDashboard.putNumber("april tag id", id);
+    }
 
     /*
      * This example of adding Limelight is very simple and may not be sufficient for on-field use.
@@ -109,7 +120,8 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
   public void teleopExit() {}
@@ -161,4 +173,5 @@ double limelight_range_proportional()
   targetingForwardSpeed *= -1.0;
   return targetingForwardSpeed;
   }
+
 }

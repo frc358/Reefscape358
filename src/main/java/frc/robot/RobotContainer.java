@@ -81,8 +81,9 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
-        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy());
+        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy().withTimeout(1.5));
         NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor());
+        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(.75));
         
 
 
@@ -205,6 +206,8 @@ public class RobotContainer {
 
     //operatorController.start().and(operatorController.back().negate()).onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
     operatorController.rightTrigger().onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+    operatorController.leftTrigger().onTrue(outtake.slowOuttake()).onFalse(outtake.stopOuttakeMotor());
+    operatorController.leftStick().onTrue(outtake.reverseOuttake()).onFalse(outtake.stopOuttakeMotor());
 }
 
 }

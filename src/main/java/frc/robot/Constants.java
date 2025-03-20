@@ -96,8 +96,9 @@ public class Constants {
     public static final int outtakeCurrentLimit = 60;
     public static final int outtakeShutOffLimit = 75;
 
-    public static final double fastOuttakeSpeed = 0.353;
-    public static final double slowOuttakeSpeed = 0.24; // .353 0.2
+    public static final double fastOuttakeSpeed = -0.45;
+    public static final double slowOuttakeSpeed = -0.1; //
+    public static final double slowReverseSpeed = .1;
 
   }
   
