@@ -261,10 +261,10 @@ public class ElevatorSubsytem extends SubsystemBase {
     SmartDashboard.putNumber(
         "Elevator/Follower Carriage Position",
         Units.metersToInches(elevatorFollowerPosition.getValueAsDouble()) * 2);
-    SmartDashboard.putBoolean("Elevator/Button Pressed", buttonPressed());
+    //SmartDashboard.putBoolean("Elevator/Button Pressed", buttonPressed());
 
-    boolean currentButtonState = buttonPressed();
-
+    //boolean currentButtonState = buttonPressed();
+/* 
     if (currentButtonState && !lastButtonState) {
       elevatorMainMotor.setPosition(0, 0);
       elevatorFollowerMotor.setPosition(0, 0);
@@ -282,6 +282,7 @@ public class ElevatorSubsytem extends SubsystemBase {
     }
 
     elevatorAlert.set(!isZeroed);
+    */
   }
 
   @Override

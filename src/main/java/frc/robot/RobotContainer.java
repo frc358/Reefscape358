@@ -4,10 +4,11 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.Set;
-import java.util.jar.Attributes.Name;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -15,7 +16,9 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,13 +26,10 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.subsystems.Outtake;
-import frc.robot.Robot;
 
 
 public class RobotContainer {
@@ -38,7 +38,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     public final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.05).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 5% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -55,6 +55,10 @@ public class RobotContainer {
 
     public boolean m_LimelightHasValidTarget = false;
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+    private final SlewRateLimiter slewX = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
+    private final SlewRateLimiter slewY = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
+    private final SlewRateLimiter slewTheta = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
 
     //path follower
     private final SendableChooser<Command> autoChooser;
@@ -84,9 +88,10 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
-        NamedCommands.registerCommand("score", outtake.autoOuttake().asProxy().withTimeout(1.5));
-        NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor());
-        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(.75));
+        NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2).asProxy());
+        NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(1.75).asProxy());
+        NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor().withTimeout(1.03).asProxy());
+        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(1.5).asProxy());
         
 
 
@@ -111,9 +116,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(slewX.calculate(-joystick.getLeftY()) * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(slewY.calculate(-joystick.getLeftX()) * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(slewTheta.calculate(-joystick.getRightX()) * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         
@@ -130,7 +135,7 @@ public class RobotContainer {
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -232,7 +237,7 @@ public class RobotContainer {
 }
 
     private void configureAlignmentBindings(){
-        operatorController.leftBumper().onTrue(adjustRobotPositionLeft()).onFalse(drivetrain.applyRequest(() -> brake));
+       // operatorController.leftBumper().onTrue(adjustRobotPositionLeft()).onFalse(drivetrain.applyRequest(() -> brake));
     }
 
 }

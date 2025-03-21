@@ -3,8 +3,7 @@
   "robotLength": 0.9144,
   "holonomicMode": true,
   "pathFolders": [
-    "NewAutos",
-    "OldAutos"
+    "NewAutos"
   ],
   "autoFolders": [
     "NewConnectedAutos",
