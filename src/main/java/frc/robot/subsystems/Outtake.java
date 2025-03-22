@@ -69,12 +69,13 @@ public class Outtake extends SubsystemBase {
     outtakemotor.set(0.00);
   }
 
+  public Command stopOuttake() {
+    return run( () -> outtakemotor.set(0));
+  }
+
   public Command stopOuttakeMotor() {
     return runOnce(this::stop).withName("Stop Outtake");
   }
-
-  @Override
-  public void periodic() {}
 
  /*  @Override
   public Command getPrematchCheckCommand() {

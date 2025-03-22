@@ -15,6 +15,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 
@@ -37,7 +40,7 @@ public class Robot extends TimedRobot {
     DataLogManager.log("Startup Time: " + startTime * 1000);
     m_robotContainer = new RobotContainer();
    //CameraServer.startAutomaticCapture();
-   
+   SignalLogger.enableAutoLogging(false);
   }
 
   @Override
@@ -53,7 +56,7 @@ public class Robot extends TimedRobot {
     //update boolean value before putting it on dashboard
     m_LimelightHasValidTarget = LimelightHelpers.getTV("limelight"); 
     SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
-    SmartDashboard.putNumber("April Tag ID", NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(kDefaultPeriod));
+    //SmartDashboard.putNumber("April Tag ID", NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(kDefaultPeriod));
   }
 
   @Override

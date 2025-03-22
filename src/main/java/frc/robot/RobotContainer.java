@@ -14,6 +14,8 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.controller.PIDController;
+
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -26,11 +28,12 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ElevatorConstants;
+import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.subsystems.Outtake;
-
+import frc.robot.Constants.VisionConstants;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -42,6 +45,12 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+    //set robot centric alignment for aligning to coral
+    final SwerveRequest.RobotCentric align = new SwerveRequest.RobotCentric()
+    .withDeadband(0.05)
+    .withRotationalDeadband( 0.05) // Add a 5% deadband
+    .withDriveRequestType(DriveRequestType.Velocity); //use closed-loop for alignment
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -58,10 +67,14 @@ public class RobotContainer {
 
     private final SlewRateLimiter slewX = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
     private final SlewRateLimiter slewY = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
-    private final SlewRateLimiter slewTheta = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
+    private final SlewRateLimiter slewTheta = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE * 2);
 
     //path follower
     private final SendableChooser<Command> autoChooser;
+
+    public static LimelightHelpers m_limelight;
+
+    
 
     public RobotContainer() {
 
@@ -72,7 +85,7 @@ public class RobotContainer {
             elevator
                 .moveToPosition(ElevatorConstants.L4Height)
                 // .onlyIf(outtakeLaserBroken)
-                .withTimeout(2.15)
+                .withTimeout(3)
                 .asProxy());
         NamedCommands.registerCommand(
             "Elevator: L3",
@@ -88,12 +101,19 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
-        NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2).asProxy());
-        NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(1.75).asProxy());
-        NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor().withTimeout(1.03).asProxy());
+                
+        NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2)
+                                                            .andThen(outtake.stopOuttake().withTimeout(1).asProxy()));
+        NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(1.0).asProxy());
+        NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor().asProxy());
         NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(1.5).asProxy());
-        
-
+        NamedCommands.registerCommand("autoJiggle", elevator.moveToPosition(ElevatorConstants.autoWiggle));
+        NamedCommands.registerCommand("L4 Then Shoot", elevator.moveToPosition(ElevatorConstants.autoL4).withTimeout(1.5)
+                                                            .andThen(outtake.slowOuttake().withTimeout(2.5)));
+        NamedCommands.registerCommand("Auto Align Left", AlignXLeft(drivetrain).withTimeout(1.5)
+                                                            .andThen(Akhil(drivetrain)));
+        NamedCommands.registerCommand("Auto Align Right", AlignXRight(drivetrain).withTimeout(1.5)
+                                                            .andThen(Akhil(drivetrain)));
 
         drivetrain.configureAutoBuilder();
         //configures dashboard to have an autonomose mode chooser
@@ -135,29 +155,13 @@ public class RobotContainer {
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        //joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
 
 
         
-    }
-    private double leftGoalEstimateX(double distanceFromTagX){
-        double neededDistance = 0;
-        neededDistance = Constants.VisionConstants.leftGoalX - distanceFromTagX;
-        return neededDistance;
-
-    }
-
-
-    private Command adjustRobotPositionLeft() {
-        //Update_Limelight_Tracking();
-        //check if aptag is detected
-        double neededDistance = leftGoalEstimateX(LimelightHelpers.getTX("limelight"));
-        //drive neededDistance
-        return drivetrain.applyRequest(() -> drive.withVelocityX(neededDistance));
-
     }
 
     private void configureElevatorBindings() {
@@ -237,7 +241,112 @@ public class RobotContainer {
 }
 
     private void configureAlignmentBindings(){
-       // operatorController.leftBumper().onTrue(adjustRobotPositionLeft()).onFalse(drivetrain.applyRequest(() -> brake));
+       operatorController.leftBumper().onTrue(AlignXLeft(drivetrain).withTimeout(2));
+       operatorController.rightBumper().onTrue(AlignXRight(drivetrain).withTimeout(2));
+       operatorController.povUp().onTrue(Akhil(drivetrain).withTimeout(2));
+    }    
+
+
+
+    public Command Akhil(CommandSwerveDrivetrain swerve) {
+        return swerve.applyRequest(() -> align.withVelocityX(.3)
+                                        .withVelocityY(0)
+                                    .withRotationalRate(0));
     }
+
+    public void AlignDistance(CommandSwerveDrivetrain swerve) {
+
+        double currentTY = LimelightHelpers.getTY("limelight"); 
+        double velo = .5;
+        //go to consistent TY
+
+        //check to see if robot needs to move closer to reef (current > constant) or farther farther from reef (current < constant)
+        if (currentTY < VisionConstants.leftGoalY){
+            while (currentTY != VisionConstants.leftGoalY){
+                //moves robot forward
+                currentTY = LimelightHelpers.getTY("limelight");
+                swerve.applyRequest(() -> align.withVelocityX(0)
+                                .withVelocityY(velo)
+                                .withRotationalRate(0));
+            
+            }
+        }
+        else {
+            while (currentTY != VisionConstants.leftGoalY){
+                //moves robot back
+                currentTY = LimelightHelpers.getTY("limelight");
+                swerve.applyRequest(() -> align.withVelocityX(0)
+                                .withVelocityY(-velo)
+                                .withRotationalRate(0));
+            
+            }
+        }
+        //stop
+        swerve.applyRequest(() -> align.withVelocityX(0)
+            .withVelocityY(0)
+            .withRotationalRate(0));
+    }
+    
+    public Command AlignXLeft(CommandSwerveDrivetrain swerve) {
+        AlignDistance(swerve); //first align distance
+
+        double currentTX = LimelightHelpers.getTX ("limelight"); //get initial tx
+        
+        //target is left of current spot
+        if(currentTX < VisionConstants.leftGoalX){
+            while (currentTX != VisionConstants.leftGoalX){
+                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                swerve.applyRequest(() -> align.withVelocityX(-.25)
+                .withVelocityY(0)
+                .withRotationalRate(0));
+        }
+    }
+        //target is right of current spot
+        else {
+            while (currentTX != VisionConstants.leftGoalX){
+                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                swerve.applyRequest(() -> align.withVelocityX(.25)
+                .withVelocityY(0)
+                .withRotationalRate(0));
+
+        }
+    }
+        //stop
+        return swerve.applyRequest(() -> align.withVelocityX(0)
+        .withVelocityY(0)
+        .withRotationalRate(0));
+    }
+
+    public Command AlignXRight(CommandSwerveDrivetrain swerve) {
+        AlignDistance(swerve); //first align distance
+
+        double currentTX = LimelightHelpers.getTX ("limelight"); //get initial tx
+        
+        //target is left of current spot
+        if(currentTX < VisionConstants.rightGoalX){
+            while (currentTX != VisionConstants.rightGoalX){
+                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                swerve.applyRequest(() -> align.withVelocityX(-.25)
+                .withVelocityY(0)
+                .withRotationalRate(0));
+        }
+    }
+        //target is right of current spot
+        else {
+            while (currentTX != VisionConstants.leftGoalX){
+                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                swerve.applyRequest(() -> align.withVelocityX(.25)
+                .withVelocityY(0)
+                .withRotationalRate(0));
+
+        }
+    }
+        //stop
+        return swerve.applyRequest(() -> align.withVelocityX(0)
+        .withVelocityY(0)
+        .withRotationalRate(0));
+    }
+
+
 
 }

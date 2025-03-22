@@ -32,7 +32,9 @@ public class Constants {
     public static final double maxHeight = Units.inchesToMeters(55);
     public static final double minHeight = 0.0;
   
-    public static final double L4Height = Units.inchesToMeters(53.5); // 28.09
+    public static final double autoL4 = Units.inchesToMeters(53.3);
+    public static final double autoWiggle = Units.inchesToMeters(53.2999);
+    public static final double L4Height = Units.inchesToMeters(53.5);
     public static final double L3Height = Units.inchesToMeters(31.5);
     public static final double L2Height = Units.inchesToMeters(15.5);
     public static final double downHeight = Units.inchesToMeters(.75);
@@ -97,16 +99,17 @@ public class Constants {
     public static final int outtakeShutOffLimit = 75;
 
     public static final double fastOuttakeSpeed = -0.45;
-    public static final double slowOuttakeSpeed = -0.1; //
-    public static final double slowReverseSpeed = .1;
+    public static final double slowOuttakeSpeed = -0.2; //
+    public static final double slowReverseSpeed = .2;
 
   }
 
   public static class VisionConstants {
     public static final double leftGoalX = 1.0;
     public static final double rightGoalX = -1.0;
-    public static final double leftGoalY = -.1;
+    public static final double leftGoalY = -7.94;
     public static final double rightGoalY= -.1;
+    public static final double TOLERANCE = 0.01;
   }
   
     public static class MiscellaneousConstants {
