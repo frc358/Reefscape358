@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import java.time.format.TextStyle;
+
 import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -28,19 +30,13 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer; 
   public static boolean obtainedAlliance = false;
   public boolean m_LimelightHasValidTarget = false;
+  public static double tx;
+  public static double ty;
 
   public Robot() {
-
-
-    double startTime = Timer.getFPGATimestamp();
-    DataLogManager.start();
-    double codeRunTime = (Timer.getFPGATimestamp() - startTime) * 1000;
-    SmartDashboard.putNumber("Code Run Time (ms)", codeRunTime);
-    SmartDashboard.putNumber("Match Time", codeRunTime);
-    DataLogManager.log("Startup Time: " + startTime * 1000);
     m_robotContainer = new RobotContainer();
-   //CameraServer.startAutomaticCapture();
-   SignalLogger.enableAutoLogging(false);
+    //CameraServer.startAutomaticCapture();
+    SignalLogger.enableAutoLogging(false);
   }
 
   @Override
@@ -56,6 +52,8 @@ public class Robot extends TimedRobot {
     //update boolean value before putting it on dashboard
     m_LimelightHasValidTarget = LimelightHelpers.getTV("limelight"); 
     SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
+    tx = LimelightHelpers.getTX("limelight");
+    ty = LimelightHelpers.getTY("limelight");
     //SmartDashboard.putNumber("April Tag ID", NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(kDefaultPeriod));
   }
 

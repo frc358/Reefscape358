@@ -14,7 +14,6 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.controller.PIDController;
 
 
 import edu.wpi.first.epilogue.Logged;
@@ -28,7 +27,6 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsytem;
@@ -41,7 +39,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     public final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.05).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 5% deadband
+            .withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 5% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -101,7 +99,7 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
-                
+
         NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2)
                                                             .andThen(outtake.stopOuttake().withTimeout(1).asProxy()));
         NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(1.0).asProxy());
@@ -256,7 +254,7 @@ public class RobotContainer {
 
     public void AlignDistance(CommandSwerveDrivetrain swerve) {
 
-        double currentTY = LimelightHelpers.getTY("limelight"); 
+        double currentTY = Robot.ty; 
         double velo = .5;
         //go to consistent TY
 
@@ -264,7 +262,7 @@ public class RobotContainer {
         if (currentTY < VisionConstants.leftGoalY){
             while (currentTY != VisionConstants.leftGoalY){
                 //moves robot forward
-                currentTY = LimelightHelpers.getTY("limelight");
+                currentTY = Robot.ty;
                 swerve.applyRequest(() -> align.withVelocityX(0)
                                 .withVelocityY(velo)
                                 .withRotationalRate(0));
@@ -274,7 +272,7 @@ public class RobotContainer {
         else {
             while (currentTY != VisionConstants.leftGoalY){
                 //moves robot back
-                currentTY = LimelightHelpers.getTY("limelight");
+                currentTY = Robot.ty;
                 swerve.applyRequest(() -> align.withVelocityX(0)
                                 .withVelocityY(-velo)
                                 .withRotationalRate(0));
@@ -290,12 +288,12 @@ public class RobotContainer {
     public Command AlignXLeft(CommandSwerveDrivetrain swerve) {
         AlignDistance(swerve); //first align distance
 
-        double currentTX = LimelightHelpers.getTX ("limelight"); //get initial tx
+        double currentTX = Robot.tx; //get initial tx
         
         //target is left of current spot
         if(currentTX < VisionConstants.leftGoalX){
             while (currentTX != VisionConstants.leftGoalX){
-                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                currentTX = Robot.tx; //update TX value
                 swerve.applyRequest(() -> align.withVelocityX(-.25)
                 .withVelocityY(0)
                 .withRotationalRate(0));
@@ -304,7 +302,7 @@ public class RobotContainer {
         //target is right of current spot
         else {
             while (currentTX != VisionConstants.leftGoalX){
-                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                currentTX = Robot.tx; //update TX value
                 swerve.applyRequest(() -> align.withVelocityX(.25)
                 .withVelocityY(0)
                 .withRotationalRate(0));
@@ -320,12 +318,12 @@ public class RobotContainer {
     public Command AlignXRight(CommandSwerveDrivetrain swerve) {
         AlignDistance(swerve); //first align distance
 
-        double currentTX = LimelightHelpers.getTX ("limelight"); //get initial tx
+        double currentTX = Robot.tx; //get initial tx which is updated every .02s
         
         //target is left of current spot
         if(currentTX < VisionConstants.rightGoalX){
             while (currentTX != VisionConstants.rightGoalX){
-                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                currentTX = Robot.tx; //update TX value
                 swerve.applyRequest(() -> align.withVelocityX(-.25)
                 .withVelocityY(0)
                 .withRotationalRate(0));
@@ -334,7 +332,7 @@ public class RobotContainer {
         //target is right of current spot
         else {
             while (currentTX != VisionConstants.leftGoalX){
-                currentTX = LimelightHelpers.getTX("limelight"); //update TX value
+                currentTX = Robot.tx; //update TX value
                 swerve.applyRequest(() -> align.withVelocityX(.25)
                 .withVelocityY(0)
                 .withRotationalRate(0));
