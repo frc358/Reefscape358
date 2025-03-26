@@ -13,8 +13,14 @@ import edu.wpi.first.wpilibj.TimedRobot;
 //import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.VisionConstants;
+import frc.robot.LimelightHelpers.PoseEstimate;
+import frc.robot.LimelightHelpers.RawFiducial;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.ctre.phoenix6.Utils;
+import edu.wpi.first.math.util.Units;
 
 import java.time.format.TextStyle;
 
@@ -32,11 +38,19 @@ public class Robot extends TimedRobot {
   public boolean m_LimelightHasValidTarget = false;
   public static double tx;
   public static double ty;
+  public boolean m_LimelightAlignedXLeft = false;
+  public boolean m_LimelightAlignedXRight = false;
+  public boolean m_LimelightAlignedY = false;
+  public PoseEstimate mt2;
+  private final Field2d m_field = new Field2d();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
-    //CameraServer.startAutomaticCapture();
+    LimelightHelpers.SetFiducialIDFiltersOverride("", new int[]{6,7,8,9,10,11,17,18,19,20,21,22}); // Only track these tag IDs
     SignalLogger.enableAutoLogging(false);
+    // Do this in either robot or subsystem init
+    SmartDashboard.putData("Field", m_field);
+
   }
 
   @Override
@@ -46,7 +60,6 @@ public class Robot extends TimedRobot {
       obtainedAlliance = true;
     }
     CommandScheduler.getInstance().run();
-
     SmartDashboard.putNumber("Voltage", RobotController.getBatteryVoltage());
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     //update boolean value before putting it on dashboard
@@ -54,6 +67,20 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("AprilTag Target", m_LimelightHasValidTarget);
     tx = LimelightHelpers.getTX("limelight");
     ty = LimelightHelpers.getTY("limelight");
+    //limelight stuff with pheonix swerve, localization
+    var driveState = m_robotContainer.drivetrain.getState();
+    double headingDeg = driveState.Pose.getRotation().getDegrees();
+    SmartDashboard.putNumber("Heading Degrees", headingDeg); //testing by outputing value on elastic
+    double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
+    //LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
+    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+    SmartDashboard.putNumber("tx", LimelightHelpers.getTX("limelight"));
+    m_field.setRobotPose(m_robotContainer.drivetrain.getRotation3d().getX(),m_robotContainer.drivetrain.getRotation3d().getY(),driveState.Pose.getRotation());   
+    if (mt2 != null && mt2.tagCount > 0 && omegaRps < 2.0) {
+      m_robotContainer.drivetrain.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
+      m_field.setRobotPose(mt2.pose); //sets robot pose for field sim 
+    }
+    
     //SmartDashboard.putNumber("April Tag ID", NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDouble(kDefaultPeriod));
   }
 

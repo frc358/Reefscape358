@@ -8,30 +8,38 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.wpilibj.TimedRobot;
 
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ElevatorConstants;
+import frc.robot.Constants.SwerveConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsytem;
 import frc.robot.subsystems.Outtake;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.LimelightHelpers.RawFiducial;
+import frc.robot.LimelightHelpers;
+import frc.robot.commands.DriveDistance;
+import frc.robot.commands.TurnToReef;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -45,10 +53,7 @@ public class RobotContainer {
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     //set robot centric alignment for aligning to coral
-    final SwerveRequest.RobotCentric align = new SwerveRequest.RobotCentric()
-    .withDeadband(0.05)
-    .withRotationalDeadband( 0.05) // Add a 5% deadband
-    .withDriveRequestType(DriveRequestType.Velocity); //use closed-loop for alignment
+    final SwerveRequest.RobotCentric align = new SwerveRequest.RobotCentric();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -61,6 +66,7 @@ public class RobotContainer {
     private final Outtake outtake = new Outtake();
 
     public boolean m_LimelightHasValidTarget = false;
+    public RawFiducial[] fiducials;
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     private final SlewRateLimiter slewX = new SlewRateLimiter(TunerConstants.DRIVE_SLEW_RATE);
@@ -71,11 +77,10 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser;
 
     public static LimelightHelpers m_limelight;
-
     
 
     public RobotContainer() {
-
+        
        
         //elevator commands
         NamedCommands.registerCommand(
@@ -99,24 +104,28 @@ public class RobotContainer {
                 // .onlyIf(outtakeLaserBroken)
                 .withTimeout(4)
                 .asProxy());
+        NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2).andThen(outtake.stopOuttake().withTimeout(1)));
+        NamedCommands.registerCommand("Elevator: down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2).andThen(outtake.stopOuttake().withTimeout(1).asProxy()));
 
-        NamedCommands.registerCommand("Elevator: Down", elevator.moveToPosition(ElevatorConstants.minHeight).withTimeout(2)
-                                                            .andThen(outtake.stopOuttake().withTimeout(1).asProxy()));
-        NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(1.0).asProxy());
+        //Outtake Commands
+        NamedCommands.registerCommand("score", outtake.fastOuttake().withTimeout(2.0).asProxy());
         NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor().asProxy());
-        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(1.5).asProxy());
-        NamedCommands.registerCommand("autoJiggle", elevator.moveToPosition(ElevatorConstants.autoWiggle));
-        NamedCommands.registerCommand("L4 Then Shoot", elevator.moveToPosition(ElevatorConstants.autoL4).withTimeout(1.5)
-                                                            .andThen(outtake.slowOuttake().withTimeout(2.5)));
-        NamedCommands.registerCommand("Auto Align Left", AlignXLeft(drivetrain).withTimeout(1.5)
-                                                            .andThen(Akhil(drivetrain)));
-        NamedCommands.registerCommand("Auto Align Right", AlignXRight(drivetrain).withTimeout(1.5)
-                                                            .andThen(Akhil(drivetrain)));
+        NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(1.5));
+        //Sequenced Commands
+        NamedCommands.registerCommand("L4 Then Shoot", elevator.moveToPosition(ElevatorConstants.autoL4).withTimeout(1).andThen(outtake.slowOuttake().withTimeout(2.5)));
+    
+        //Alignment Commands
+        NamedCommands.registerCommand("Path Find To Setup", drivetrain.pathFindToSetup());
+        NamedCommands.registerCommand("Turn To Reef", new TurnToReef(drivetrain).withTimeout(2));
+        NamedCommands.registerCommand("AutoAlignLeft", drivetrain.reefAlign(true).withTimeout(2));
+        NamedCommands.registerCommand("AutoAlignRight", drivetrain.reefAlign(false).withTimeout(2));
 
         drivetrain.configureAutoBuilder();
         //configures dashboard to have an autonomose mode chooser
-        autoChooser = AutoBuilder.buildAutoChooser("Auto Chooser");
+        autoChooser = AutoBuilder.buildAutoChooser("Blue Middle");
         Shuffleboard.getTab("Auto Chooser").add(autoChooser);
+
+        //configure driver and operator xbox bindings
         configureBindings();
         configureElevatorBindings();
         configureOuttakeBindings();
@@ -134,9 +143,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(slewX.calculate(-joystick.getLeftY()) * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(slewY.calculate(-joystick.getLeftX()) * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(slewTheta.calculate(-joystick.getRightX()) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(slewX.calculate(Math.pow(-joystick.getLeftY(), 3)) * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(slewY.calculate(Math.pow(-joystick.getLeftX(), 3)) * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate((Math.pow(-joystick.getRightX(), 3)) * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         
@@ -192,27 +201,10 @@ public class RobotContainer {
 
         // home elevator
         operatorController.start().and(operatorController.back()).onTrue(elevator.homeElevator());
-        // coral in the way add
-        operatorController
-            .povRight()
-            .onTrue(
-                new DeferredCommand(
-                    () -> {
-                    double newTarget =
-                          Units.inchesToMeters(
-                              elevator.getPositionInches() + ElevatorConstants.coralInTheWayAdd);
-                    return elevator.moveToPosition(newTarget);
-                    },
-                    Set.of(elevator)));
          // elevator manual down
         operatorController
             .povDown()
             .whileTrue(elevator.downSpeed(0.1))
-            .onFalse(elevator.runOnce(() -> elevator.downPosition()));
-        // elevator manual up
-        operatorController
-            .povUp()
-            .whileTrue(elevator.upSpeed(0.1))
             .onFalse(elevator.runOnce(() -> elevator.downPosition()));
         //elevator manual up fast
         operatorController
@@ -226,125 +218,119 @@ public class RobotContainer {
             .onFalse(elevator.runOnce(() -> elevator.downPosition()));
 
   }
-  private void configureOuttakeBindings() {
-    // operatorController
-    //     .button(OperatorConstants.indexerButton)
-    //     .onTrue(outtake.reverseOuttake())
-    //     .onFalse(outtake.stopOuttakeMotor());
+    private void configureOuttakeBindings() {
+        // operatorController
+        //     .button(OperatorConstants.indexerButton)
+        //     .onTrue(outtake.reverseOuttake())
+        //     .onFalse(outtake.stopOuttakeMotor());
 
-    //operatorController.start().and(operatorController.back().negate()).onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
-    operatorController.rightTrigger().onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
-    operatorController.leftTrigger().onTrue(outtake.slowOuttake()).onFalse(outtake.stopOuttakeMotor());
-    operatorController.leftStick().onTrue(outtake.reverseOuttake()).onFalse(outtake.stopOuttakeMotor());
-}
-
-    private void configureAlignmentBindings(){
-       operatorController.leftBumper().onTrue(AlignXLeft(drivetrain).withTimeout(2));
-       operatorController.rightBumper().onTrue(AlignXRight(drivetrain).withTimeout(2));
-       operatorController.povUp().onTrue(Akhil(drivetrain).withTimeout(2));
-    }    
-
-
-
-    public Command Akhil(CommandSwerveDrivetrain swerve) {
-        return swerve.applyRequest(() -> align.withVelocityX(.3)
-                                        .withVelocityY(0)
-                                    .withRotationalRate(0));
-    }
-
-    public void AlignDistance(CommandSwerveDrivetrain swerve) {
-
-        double currentTY = Robot.ty; 
-        double velo = .5;
-        //go to consistent TY
-
-        //check to see if robot needs to move closer to reef (current > constant) or farther farther from reef (current < constant)
-        if (currentTY < VisionConstants.leftGoalY){
-            while (currentTY != VisionConstants.leftGoalY){
-                //moves robot forward
-                currentTY = Robot.ty;
-                swerve.applyRequest(() -> align.withVelocityX(0)
-                                .withVelocityY(velo)
-                                .withRotationalRate(0));
-            
-            }
-        }
-        else {
-            while (currentTY != VisionConstants.leftGoalY){
-                //moves robot back
-                currentTY = Robot.ty;
-                swerve.applyRequest(() -> align.withVelocityX(0)
-                                .withVelocityY(-velo)
-                                .withRotationalRate(0));
-            
-            }
-        }
-        //stop
-        swerve.applyRequest(() -> align.withVelocityX(0)
-            .withVelocityY(0)
-            .withRotationalRate(0));
+        //operatorController.start().and(operatorController.back().negate()).onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+        operatorController.rightTrigger().onTrue(outtake.fastOuttake()).onFalse(outtake.stopOuttakeMotor());
+        operatorController.leftTrigger().onTrue(outtake.slowOuttake()).onFalse(outtake.stopOuttakeMotor());
+        operatorController.leftStick().onTrue(outtake.reverseOuttake()).onFalse(outtake.stopOuttakeMotor());
     }
     
-    public Command AlignXLeft(CommandSwerveDrivetrain swerve) {
-        AlignDistance(swerve); //first align distance
+    private void configureAlignmentBindings(){
+        operatorController.leftBumper().onTrue(drivetrain.pathFindToSetup());
+        joystick.rightBumper().onTrue(new TurnToReef(drivetrain));    
+        joystick.povDown().onTrue(new DriveDistance(drivetrain));
+        //joystick.povUp().onTrue(idkSomething().withTimeout(2));
+        joystick.povUp().onTrue(idkSomething().until(absTX));
 
-        double currentTX = Robot.tx; //get initial tx
-        
-        //target is left of current spot
-        if(currentTX < VisionConstants.leftGoalX){
-            while (currentTX != VisionConstants.leftGoalX){
-                currentTX = Robot.tx; //update TX value
-                swerve.applyRequest(() -> align.withVelocityX(-.25)
-                .withVelocityY(0)
-                .withRotationalRate(0));
-        }
+        //operatorController.leftBumper().onTrue(drivetrain.pathFindToSetup().andThen(new TurnToReef(drivetrain).andThen(drivetrain.reefAlign(true))));
+        //operatorController.rightBumper().onTrue(drivetrain.pathFindToSetup().andThen(new TurnToReef(drivetrain).andThen(drivetrain.reefAlign(false))));        
     }
-        //target is right of current spot
+
+
+    private Command idkSomething(){
+        if(LimelightHelpers.getTX("limelight") > 0){
+            return drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(.1).withVelocityY(0).withRotationalRate(0));
+        }
+
         else {
-            while (currentTX != VisionConstants.leftGoalX){
-                currentTX = Robot.tx; //update TX value
-                swerve.applyRequest(() -> align.withVelocityX(.25)
-                .withVelocityY(0)
-                .withRotationalRate(0));
-
+            return drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(-.1).withVelocityY(0).withRotationalRate(0));
         }
     }
-        //stop
-        return swerve.applyRequest(() -> align.withVelocityX(0)
-        .withVelocityY(0)
-        .withRotationalRate(0));
+
+    private BooleanSupplier absTX = () -> {
+        return Math.abs(LimelightHelpers.getTX("limelight")) < 1;
+    };
+
+
+
+ // simple proportional turning control with Limelight.
+  // "proportional control" is a control algorithm in which the output is proportional to the error.
+  // in this case, we are going to return an angular velocity that is proportional to the 
+  // "tx" value from the Limelight.
+  double limelight_aim_proportional()
+  {    
+    // kP (constant of proportionality)
+    // this is a hand-tuned number that determines the aggressiveness of our proportional control loop
+    // if it is too high, the robot will oscillate around.
+    // if it is too low, the robot will never reach its target
+    // if the robot never turns in the correct direction, kP should be inverted.
+    double kP = .035;
+
+    // tx ranges from (-hfov/2) to (hfov/2) in degrees. If your target is on the rightmost edge of 
+    // your limelight 3 feed, tx should return roughly 31 degrees.
+    double targetingAngularVelocity = LimelightHelpers.getTX("limelight") * kP;
+
+    // convert to radians per second for our drive method
+    targetingAngularVelocity *= MaxAngularRate;
+
+    //invert since tx is positive when the target is to the right of the crosshair
+    targetingAngularVelocity *= -1.0;
+
+    return targetingAngularVelocity;
+  }
+
+  // simple proportional ranging control with Limelight's "ty" value
+  // this works best if your Limelight's mount height and target mount height are different.
+  // if your limelight and target are mounted at the same or similar heights, use "ta" (area) for target ranging rather than "ty"
+  double limelight_range_proportional()
+  {    
+    double kP = .1;
+    double targetingForwardSpeed = LimelightHelpers.getTY("limelight") * kP;
+    targetingForwardSpeed *= MaxSpeed; //max speed is 2.5
+    targetingForwardSpeed *= -1.0;
+    return targetingForwardSpeed;
+  }
+
+  private void drive(boolean fieldRelative) {
+    // Get the x speed. We are inverting this because Xbox controllers return
+    // negative values when we push forward.
+    var xSpeed =
+        -slewX.calculate(MathUtil.applyDeadband(joystick.getLeftY(), 0.02))
+            * MaxSpeed;
+
+    // Get the y speed or sideways/strafe speed. We are inverting this because
+    // we want a positive value when we pull to the left. Xbox controllers
+    // return positive values when you pull to the right by default.
+    var ySpeed =
+        -slewY.calculate(MathUtil.applyDeadband(joystick.getLeftX(), 0.02))
+            * MaxSpeed;
+
+    // Get the rate of angular rotation. We are inverting this because we want a
+    // positive value when we pull to the left (remember, CCW is positive in
+    // mathematics). Xbox controllers return positive values when you pull to
+    // the right by default.
+    var rot =
+        -slewTheta.calculate(MathUtil.applyDeadband(joystick.getRightX(), 0.02))
+            * MaxAngularRate;
+
+    // while the A-button is pressed, overwrite some of the driving values with the output of our limelight methods
+    /* 
+    if(true)
+    {
+        final var rot_limelight = limelight_aim_proportional();
+        rot = rot_limelight;
+
+        final var forward_limelight = limelight_range_proportional();
+        xSpeed = forward_limelight;
+
+        //while using Limelight, turn off field-relative driving.
+        fieldRelative = false;
     }
-
-    public Command AlignXRight(CommandSwerveDrivetrain swerve) {
-        AlignDistance(swerve); //first align distance
-
-        double currentTX = Robot.tx; //get initial tx which is updated every .02s
-        
-        //target is left of current spot
-        if(currentTX < VisionConstants.rightGoalX){
-            while (currentTX != VisionConstants.rightGoalX){
-                currentTX = Robot.tx; //update TX value
-                swerve.applyRequest(() -> align.withVelocityX(-.25)
-                .withVelocityY(0)
-                .withRotationalRate(0));
-        }
-    }
-        //target is right of current spot
-        else {
-            while (currentTX != VisionConstants.leftGoalX){
-                currentTX = Robot.tx; //update TX value
-                swerve.applyRequest(() -> align.withVelocityX(.25)
-                .withVelocityY(0)
-                .withRotationalRate(0));
-
-        }
-    }
-        //stop
-        return swerve.applyRequest(() -> align.withVelocityX(0)
-        .withVelocityY(0)
-        .withRotationalRate(0));
-    }
-
-
-
+        */
+  }
 }
