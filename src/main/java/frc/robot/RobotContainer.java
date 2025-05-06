@@ -54,7 +54,7 @@ public class RobotContainer {
 
     //set robot centric alignment for aligning to coral
     final SwerveRequest.RobotCentric align = new SwerveRequest.RobotCentric();
-
+    
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
@@ -112,13 +112,12 @@ public class RobotContainer {
         NamedCommands.registerCommand("stop score", outtake.stopOuttakeMotor().asProxy());
         NamedCommands.registerCommand("HP intake", outtake.slowOuttake().withTimeout(1.5));
         //Sequenced Commands
-        NamedCommands.registerCommand("L4 Then Shoot", elevator.moveToPosition(ElevatorConstants.autoL4).withTimeout(1).andThen(outtake.slowOuttake().withTimeout(2.5)));
+        NamedCommands.registerCommand("L4 Then Shoot", elevator.moveToPosition(ElevatorConstants.autoL4).withTimeout(1.5).andThen(outtake.slowOuttake().withTimeout(2.5)));
+        NamedCommands.registerCommand("L2 Then Shoot", elevator.moveToPosition(ElevatorConstants.L2Height).withTimeout(1).andThen(outtake.slowOuttake().withTimeout(2.5)));
     
         //Alignment Commands
         NamedCommands.registerCommand("Path Find To Setup", drivetrain.pathFindToSetup());
         NamedCommands.registerCommand("Turn To Reef", new TurnToReef(drivetrain).withTimeout(2));
-        NamedCommands.registerCommand("AutoAlignLeft", drivetrain.reefAlign(true).withTimeout(2));
-        NamedCommands.registerCommand("AutoAlignRight", drivetrain.reefAlign(false).withTimeout(2));
 
         drivetrain.configureAutoBuilder();
         //configures dashboard to have an autonomose mode chooser
@@ -145,8 +144,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(slewX.calculate(Math.pow(-joystick.getLeftY(), 3)) * MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(slewY.calculate(Math.pow(-joystick.getLeftX(), 3)) * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate((Math.pow(-joystick.getRightX(), 3)) * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
+                    .withRotationalRate((Math.pow(-joystick.getRightX(), 3)) * MaxAngularRate)) // Drive counterclockwise with negative X (left)
+
         );
         
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -165,9 +164,6 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
-
-
-
         
     }
 
@@ -231,31 +227,40 @@ public class RobotContainer {
     }
     
     private void configureAlignmentBindings(){
-        operatorController.leftBumper().onTrue(drivetrain.pathFindToSetup());
+        //operatorController.leftBumper().onTrue(drivetrain.pathFindToSetup());
         joystick.rightBumper().onTrue(new TurnToReef(drivetrain));    
-        joystick.povDown().onTrue(new DriveDistance(drivetrain));
-        //joystick.povUp().onTrue(idkSomething().withTimeout(2));
-        joystick.povUp().onTrue(idkSomething().until(absTX));
+
+        //drive forward robot centric
+        joystick.povUp().whileTrue(drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(.1)));        //drive left/right
+        joystick.povRight().whileTrue(drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0).withVelocityY(-.125).withRotationalRate(0)));
+        joystick.povLeft().whileTrue(drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(0).withVelocityY(.125).withRotationalRate(0)));
+        joystick.povDown().whileTrue(drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(-.1).withVelocityY(0).withRotationalRate(0)));
 
         //operatorController.leftBumper().onTrue(drivetrain.pathFindToSetup().andThen(new TurnToReef(drivetrain).andThen(drivetrain.reefAlign(true))));
         //operatorController.rightBumper().onTrue(drivetrain.pathFindToSetup().andThen(new TurnToReef(drivetrain).andThen(drivetrain.reefAlign(false))));        
     }
 
 
-    private Command idkSomething(){
-        if(LimelightHelpers.getTX("limelight") > 0){
-            return drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(.1).withVelocityY(0).withRotationalRate(0));
-        }
+double limelight_calc_distance(){
+    NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+    NetworkTableEntry ty = table.getEntry("ty");
+    double targetOffsetAngle_Vertical = ty.getDouble(0.0);
 
-        else {
-            return drivetrain.applyRequest(() -> new SwerveRequest.RobotCentric().withVelocityX(-.1).withVelocityY(0).withRotationalRate(0));
-        }
-    }
+    // how many degrees back is your limelight rotated from perfectly vertical?
+    double limelightMountAngleDegrees = 25.0; 
 
-    private BooleanSupplier absTX = () -> {
-        return Math.abs(LimelightHelpers.getTX("limelight")) < 1;
-    };
+    // distance from the center of the Limelight lens to the floor
+    double limelightLensHeightInches = 20.0; 
 
+    // distance from the target to the floor
+    double goalHeightInches = 60.0; 
+
+    double angleToGoalDegrees = limelightMountAngleDegrees + targetOffsetAngle_Vertical;
+    double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+
+    //calculate distance
+    double distanceFromLimelightToGoalInches = (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
+}
 
 
  // simple proportional turning control with Limelight.

@@ -43,6 +43,7 @@ import frc.robot.LimelightHelpers.LimelightResults;
 import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.LimelightHelpers.*;
+import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.Robot;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
@@ -59,11 +60,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    private Pose2d leftPose;
-    private Pose2d rightPose;
-
     private double distance;
     private double rotation;
+    double[] aTagID;
+
 
     private SwerveDriveState stateCache = getState();
 
@@ -238,9 +238,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 ),
                 new PPHolonomicDriveController(
                     // PID constants for translation
-                    new PIDConstants(10, 0, 0),
+                    new PIDConstants(2.5, 0, 0),
                     // PID constants for rotation
-                    new PIDConstants(7, 0, 0)
+                    new PIDConstants(2.5, 0,.01)
                 ),
                 config,
                 // Assume the path needs to be flipped for Red vs Blue, this is normally the case
@@ -285,11 +285,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public void updateBestAlignmentPose(){
-        double[] aTagID;
         aTagID = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<tid>").getDoubleArray(new double[0]);
 
-        PoseEstimate currentPose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+        Pose2d currentPose = stateCache.Pose;
         double desiredRotation = FieldConstants.aprilTagAngles.getOrDefault(aTagID, 0.0);
+
+
+
 
         SmartDashboard.putNumber("Swerve/Goal Rotation", desiredRotation);
         SmartDashboard.putNumberArray("Swerve/Best Tag ID", aTagID);
@@ -375,26 +377,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
 
-public void resetFOC(){
-    this.resetRotation(Robot.isRedAlliance() ? kRedAlliancePerspectiveRotation : kBlueAlliancePerspectiveRotation);
- }
-
-  public Command reefAlign(boolean leftAlign) {
-    return new DeferredCommand(
-            () -> {
-              if (leftPose == null || rightPose == null) {
-                return new InstantCommand();
-              }
-              Pose2d leftPose = LimelightHelpers.getBotPose2d("limelight");
-              Pose2d goalPose = leftAlign ? leftPose : rightPose;
-              SmartDashboard.putNumber("Swerve/Attempted Pose X", goalPose.getX());
-              SmartDashboard.putNumber("Swerve/Attempted Pose Y", goalPose.getY());
-              // return new InstantCommand();
-              return AutoBuilder.pathfindToPose(goalPose, AutoConstants.slowPathConstraints, 0.0);
-            },
-            Set.of(this))
-        .withName("Reef Align");
-  }
+    public void resetFOC(){
+        this.resetRotation(Robot.isRedAlliance() ? kRedAlliancePerspectiveRotation : kBlueAlliancePerspectiveRotation);
+    }
 
   //use the pathfinding from Pathplanner to find a path to the setup of scoring
   public Command pathFindToSetup() {
@@ -417,10 +402,9 @@ public void resetFOC(){
             Set.of(this))
         .withName("Pathfind to Setup");
   }
-
   
   public double getDistance() {
-    Rotation2d angleToGoal = Rotation2d.fromDegrees(15) // LIMELIGHT MOUNTED AT 15 DEGREES
+    Rotation2d angleToGoal = Rotation2d.fromDegrees(-15) // LIMELIGHT MOUNTED AT 15 DEGREES
     .plus(Rotation2d.fromDegrees(LimelightHelpers.getTX("limelight")));
     double distance = (9.5 - 18) / angleToGoal.getTan(); //18 INCHES MOUNT HEIGHT, aptag 9.5 inches
     return distance;

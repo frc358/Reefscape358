@@ -29,7 +29,6 @@ public class DriveDistance extends Command {
     private final CommandSwerveDrivetrain swerve;
     private double targetX, targetY;
     private Pose2d target;
-    private final PIDController driveController;
     double distance;
     private SwerveRequest.FieldCentric fieldOriented =
         new SwerveRequest.FieldCentric()
@@ -39,8 +38,6 @@ public class DriveDistance extends Command {
 
     public DriveDistance(CommandSwerveDrivetrain swerve){
         this.swerve = swerve;
-        driveController = new PIDController(7,0,.5);
-        driveController.enableContinuousInput(0, 50);
         addRequirements(swerve);
     }
 
@@ -60,12 +57,11 @@ public class DriveDistance extends Command {
     @Override
     public boolean isFinished() {
         
-        return Math.abs(driveController.getError()) < 1;
+        return true;
     }
 
     @Override
     public void end(boolean interrupted){
-        driveController.reset();
         swerve.setControl(fieldOriented.withVelocityX(0).withVelocityY(0).withRotationalRate(0));
     }
     

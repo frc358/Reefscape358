@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 
@@ -113,8 +114,8 @@ public class Constants {
     public static final int outtakeCurrentLimit = 60;
     public static final int outtakeShutOffLimit = 75;
 
-    public static final double fastOuttakeSpeed = -0.55;
-    public static final double slowOuttakeSpeed = -0.25; //
+    public static final double fastOuttakeSpeed = -0.60;
+    public static final double slowOuttakeSpeed = -0.30; //
     public static final double slowReverseSpeed = .1;
 
   }
@@ -161,6 +162,24 @@ public class Constants {
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
+      }
+
+
+      public static final Map<Integer, Pose3d> aprilTagPositions = new HashMap<>();
+
+      static {
+        aprilTagPositions.put(6, aprilTagLayout.getTagPose(6).orElse(null));
+        aprilTagPositions.put(7, aprilTagLayout.getTagPose(7).orElse(null));
+        aprilTagPositions.put(8, aprilTagLayout.getTagPose(8).orElse(null));
+        aprilTagPositions.put(9, aprilTagLayout.getTagPose(9).orElse(null));
+        aprilTagPositions.put(10,aprilTagLayout.getTagPose(10).orElse(null));
+        aprilTagPositions.put(11,aprilTagLayout.getTagPose(11).orElse(null));
+        aprilTagPositions.put(17,aprilTagLayout.getTagPose(17).orElse(null));
+        aprilTagPositions.put(18,aprilTagLayout.getTagPose(18).orElse(null));
+        aprilTagPositions.put(19,aprilTagLayout.getTagPose(19).orElse(null));
+        aprilTagPositions.put(20, aprilTagLayout.getTagPose(20).orElse(null));
+        aprilTagPositions.put(21, aprilTagLayout.getTagPose(21).orElse(null));
+        aprilTagPositions.put(22, aprilTagLayout.getTagPose(22).orElse(null));
       }
 
       public static final Pose2d redStationLeft =
@@ -290,7 +309,7 @@ public class Constants {
     public static class AutoConstants {
 
        public static final PathConstraints slowPathConstraints =
-        new PathConstraints(.1, 1, Units.degreesToRadians(180), Units.degreesToRadians(360));
+        new PathConstraints(.3, 1, Units.degreesToRadians(180), Units.degreesToRadians(360));
     }
   }
 
