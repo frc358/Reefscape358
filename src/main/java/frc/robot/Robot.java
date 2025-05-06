@@ -92,6 +92,8 @@ public class Robot extends TimedRobot {
       m_field.setRobotPose(mt2.pose); //sets robot pose for field sim 
     }
     
+    double distance = limelight_calc_distance();
+    SmartDashboard.putData(distance);
   }
 
   @Override
